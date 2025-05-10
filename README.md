@@ -1,2 +1,2 @@
 # CineMatch
-A smart movie name suggester that recommends similar movie titles based on what you type.
+A smart movie name suggester that recommends similar movies based on yours inputs.
