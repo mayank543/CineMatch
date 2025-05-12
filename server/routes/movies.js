@@ -1,10 +1,12 @@
+require('dotenv').config(); 
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
 
-require('dotenv').config(); // Load .env variables
+// Load .env variables
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
+
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
 // Fetch genre IDs for a movie title
