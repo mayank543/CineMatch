@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
-import api from '../services/api';
 import { motion } from 'framer-motion';
+import { useDebounce } from 'use-debounce';
+
+// IMPORTANT: Make sure this exact environment variable name matches what's in your .env file
+const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const MovieInputForm = () => {
   const [userMovies, setUserMovies] = useState(['']);
@@ -10,6 +13,44 @@ const MovieInputForm = () => {
   const [error, setError] = useState('');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [debouncedLastInput] = useDebounce(userMovies[userMovies.length - 1], 300); 
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      const query = debouncedLastInput?.trim();
+      if (!query || query.length < 2) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        // Check if API key is available
+        if (!TMDB_API_KEY) {
+          console.error('❌ TMDB API key is missing. Check your .env file');
+          return;
+        }
+
+        // Make sure the API key is properly formatted in the request
+        const res = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
+          params: {
+            api_key: TMDB_API_KEY,
+            query: query,
+            include_adult: false
+          }
+        });
+
+        const titles = res.data.results.map((m) => m.title);
+        setSuggestions(titles.slice(0, 5));
+      } catch (err) {
+        console.error('❌ TMDB Suggestion Error:', err.message);
+        console.error('Error details:', err.response?.data || 'No response data');
+        setSuggestions([]);
+      }
+    };
+
+    fetchSuggestions();
+  }, [debouncedLastInput]);
 
   const handleChange = (index, value) => {
     const updated = [...userMovies];
@@ -19,6 +60,7 @@ const MovieInputForm = () => {
 
   const handleAddMovie = () => {
     setUserMovies([...userMovies, '']);
+    setSuggestions([]); // Clear suggestions when new input added
   };
 
   const handleSubmit = async (e) => {
@@ -26,7 +68,7 @@ const MovieInputForm = () => {
     setLoading(true);
     setError('');
 
-    const filteredMovies = userMovies.filter(movie => movie.trim() !== '');
+    const filteredMovies = userMovies.filter((movie) => movie.trim() !== '');
 
     if (filteredMovies.length === 0) {
       setError('Please enter at least one movie title');
@@ -46,8 +88,6 @@ const MovieInputForm = () => {
 
       if (res.data && res.data.recommendations) {
         setResults(res.data.recommendations);
-      } else if (res.data && Array.isArray(res.data)) {
-        setResults(res.data);
       } else {
         setResults([]);
       }
@@ -79,19 +119,41 @@ const MovieInputForm = () => {
         )}
 
         {userMovies.map((movie, index) => (
-          <input
-            key={index}
-            type="text"
-            value={movie}
-            onChange={(e) => handleChange(index, e.target.value)}
-            placeholder={`Movie ${index + 1}`}
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
+          <div key={index} className="relative">
+            <input
+              type="text"
+              value={movie}
+              onChange={(e) => handleChange(index, e.target.value)}
+              placeholder={`Movie ${index + 1}`}
+              className="w-full px-4 py-2 border rounded"
+              required
+            />
+
+            {index === userMovies.length - 1 && suggestions.length > 0 && (
+              <ul className="absolute z-20 bg-white border rounded shadow w-full mt-1 max-h-40 overflow-auto">
+                {suggestions.map((title, idx) => (
+                  <li
+                    key={idx}
+                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                    onClick={() => {
+                      handleChange(index, title);
+                      setSuggestions([]);
+                    }}
+                  >
+                    {title}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         ))}
 
         <div className="flex gap-2">
-          <button type="button" onClick={handleAddMovie} className="px-4 py-2 bg-blue-500 text-white rounded">
+          <button
+            type="button"
+            onClick={handleAddMovie}
+            className="px-4 py-2 bg-blue-500 text-white rounded"
+          >
             + Add Another
           </button>
           <button
@@ -136,11 +198,20 @@ const MovieInputForm = () => {
 
                 <div className="flex items-center gap-1 mt-1">
                   {Array.from({ length: 5 }).map((_, i) => (
-                    <span key={i} className={i < Math.round(movie.vote_average / 2) ? 'text-yellow-500' : 'text-gray-300'}>
+                    <span
+                      key={i}
+                      className={
+                        i < Math.round(movie.vote_average / 2)
+                          ? 'text-yellow-500'
+                          : 'text-gray-300'
+                      }
+                    >
                       ★
                     </span>
                   ))}
-                  <span className="text-xs text-gray-600 ml-1">({movie.vote_average})</span>
+                  <span className="text-xs text-gray-600 ml-1">
+                    ({movie.vote_average})
+                  </span>
                 </div>
 
                 <p className="text-xs text-gray-700 mt-1 line-clamp-3">{movie.overview}</p>
@@ -152,49 +223,58 @@ const MovieInputForm = () => {
 
       {/* Modal */}
       {showModal && selectedMovie && (
-  <div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
-    onClick={closeModal} // click outside closes modal
-  >
-    <motion.div
-      className="bg-white rounded-lg max-w-md w-[90%] p-4 relative shadow-lg"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      onClick={(e) => e.stopPropagation()} // prevent closing when clicking inside
-    >
-      <button
-        onClick={closeModal}
-        className="absolute top-2 right-3 text-gray-800 hover:text-red-600 text-2xl font-bold"
-        aria-label="Close"
-      >
-        ✖
-      </button>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60"
+          onClick={closeModal}
+        >
+          <motion.div
+            className="bg-white rounded-lg max-w-md w-[90%] p-4 relative shadow-lg"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeModal}
+              className="absolute top-2 right-3 text-gray-800 hover:text-red-600 text-2xl font-bold"
+              aria-label="Close"
+            >
+              ✖
+            </button>
 
-      {selectedMovie.poster_path && (
-        <img
-          src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
-          alt={selectedMovie.title}
-          className="w-full h-auto rounded mb-4"
-        />
+            {selectedMovie.poster_path && (
+              <img
+                src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
+                alt={selectedMovie.title}
+                className="w-full h-auto rounded mb-4"
+              />
+            )}
+
+            <h2 className="text-xl font-bold mb-2">{selectedMovie.title}</h2>
+            <p className="text-sm text-gray-600 mb-2">{selectedMovie.release_date}</p>
+
+            <div className="flex items-center gap-1 mb-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <span
+                  key={i}
+                  className={
+                    i < Math.round(selectedMovie.vote_average / 2)
+                      ? 'text-yellow-500'
+                      : 'text-gray-300'
+                  }
+                >
+                  ★
+                </span>
+              ))}
+              <span className="text-xs text-gray-600 ml-1">
+                ({selectedMovie.vote_average})
+              </span>
+            </div>
+
+            <p className="text-sm text-gray-700">{selectedMovie.overview}</p>
+          </motion.div>
+        </div>
       )}
-
-      <h2 className="text-xl font-bold mb-2">{selectedMovie.title}</h2>
-      <p className="text-sm text-gray-600 mb-2">{selectedMovie.release_date}</p>
-
-      <div className="flex items-center gap-1 mb-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <span key={i} className={i < Math.round(selectedMovie.vote_average / 2) ? 'text-yellow-500' : 'text-gray-300'}>
-            ★
-          </span>
-        ))}
-        <span className="text-xs text-gray-600 ml-1">({selectedMovie.vote_average})</span>
-      </div>
-
-      <p className="text-sm text-gray-700">{selectedMovie.overview}</p>
-    </motion.div>
-  </div>
-)}
     </div>
   );
 };
