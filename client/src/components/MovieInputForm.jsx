@@ -63,6 +63,13 @@ const MovieInputForm = () => {
     setSuggestions([]); // Clear suggestions when new input added
   };
 
+  const handleRemoveMovie = (index) => {
+  if (userMovies.length > 1) {
+    const updated = userMovies.filter((_, i) => i !== index);
+    setUserMovies(updated);
+  }
+};
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -119,34 +126,48 @@ const MovieInputForm = () => {
         )}
 
         {userMovies.map((movie, index) => (
-          <div key={index} className="relative">
-            <input
-              type="text"
-              value={movie}
-              onChange={(e) => handleChange(index, e.target.value)}
-              placeholder={`Movie ${index + 1}`}
-              className="w-full px-4 py-2 border rounded"
-              required
-            />
+  <div key={index} className="relative flex gap-2 items-start">
+    <div className="w-full relative">
+      <input
+        type="text"
+        value={movie}
+        onChange={(e) => handleChange(index, e.target.value)}
+        placeholder={`Movie ${index + 1}`}
+        className="w-full px-4 py-2 border rounded text-black dark:text-white dark:bg-gray-800"
+        required
+      />
 
-            {index === userMovies.length - 1 && suggestions.length > 0 && (
-              <ul className="absolute z-20 bg-white border rounded shadow w-full mt-1 max-h-40 overflow-auto">
-                {suggestions.map((title, idx) => (
-                  <li
-                    key={idx}
-                    className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
-                    onClick={() => {
-                      handleChange(index, title);
-                      setSuggestions([]);
-                    }}
-                  >
-                    {title}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+      {index === userMovies.length - 1 && suggestions.length > 0 && (
+        <ul className="absolute z-20 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow w-full mt-1 max-h-40 overflow-auto text-black dark:text-white">
+          {suggestions.map((title, idx) => (
+            <li
+              key={idx}
+              className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-700 cursor-pointer"
+              onClick={() => {
+                handleChange(index, title);
+                setSuggestions([]);
+              }}
+            >
+              {title}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+
+    {/* Show remove button if there's more than one field */}
+    {userMovies.length > 1 && (
+      <button
+        type="button"
+        onClick={() => handleRemoveMovie(index)}
+        className="mt-1 text-red-600 hover:text-red-800 font-bold px-2"
+        title="Remove this movie input"
+      >
+        ✖
+      </button>
+    )}
+  </div>
+))}
 
         <div className="flex gap-2">
           <button
@@ -191,7 +212,7 @@ const MovieInputForm = () => {
                   </div>
                 )}
 
-                <h4 className="font-semibold text-md transition-colors duration-300 group-hover:text-blue-600">
+                <h4 className="font-semibold text-black text-md transition-colors duration-300 group-hover:text-blue-600">
                   {movie.title}
                 </h4>
                 <p className="text-sm text-gray-600">{movie.release_date}</p>
@@ -228,7 +249,7 @@ const MovieInputForm = () => {
           onClick={closeModal}
         >
           <motion.div
-            className="bg-white rounded-lg max-w-md w-[90%] p-4 relative shadow-lg"
+            className="bg-white dark:bg-gray-900 rounded-lg max-w-md w-[90%] p-4 relative shadow-lg"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -236,7 +257,7 @@ const MovieInputForm = () => {
           >
             <button
               onClick={closeModal}
-              className="absolute top-2 right-3 text-gray-800 hover:text-red-600 text-2xl font-bold"
+              className="absolute top-2 right-3 text-gray-800 dark:text-gray-200 hover:text-red-600 text-2xl font-bold"
               aria-label="Close"
             >
               ✖
@@ -250,8 +271,8 @@ const MovieInputForm = () => {
               />
             )}
 
-            <h2 className="text-xl font-bold mb-2">{selectedMovie.title}</h2>
-            <p className="text-sm text-gray-600 mb-2">{selectedMovie.release_date}</p>
+            <h2 className="text-xl font-bold mb-2 text-black dark:text-white">{selectedMovie.title}</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{selectedMovie.release_date}</p>
 
             <div className="flex items-center gap-1 mb-3">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -266,12 +287,12 @@ const MovieInputForm = () => {
                   ★
                 </span>
               ))}
-              <span className="text-xs text-gray-600 ml-1">
+              <span className="text-xs text-gray-600 dark:text-gray-400 ml-1">
                 ({selectedMovie.vote_average})
               </span>
             </div>
 
-            <p className="text-sm text-gray-700">{selectedMovie.overview}</p>
+            <p className="text-sm text-gray-700 dark:text-gray-300">{selectedMovie.overview}</p>
           </motion.div>
         </div>
       )}
