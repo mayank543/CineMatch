@@ -10,7 +10,7 @@ const app = express();
 
 // IMPORTANT: CORS middleware must be before any routes
 app.use(cors({
-  origin: 'http://localhost:5173', // Your frontend URL exactly as shown
+  origin: ['http://localhost:5173','https://cine-match-fjmq.vercel.app'], // Your frontend URL exactly as shown
   methods: ['GET', 'POST', 'OPTIONS'], // Include OPTIONS for preflight
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: false // Change to true if you need to send cookies
