@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useDebounce } from 'use-debounce';
+import api from '../services/api'; 
 
 // IMPORTANT: Make sure this exact environment variable name matches what's in your .env file
 const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -64,11 +65,11 @@ const MovieInputForm = () => {
   };
 
   const handleRemoveMovie = (index) => {
-  if (userMovies.length > 1) {
-    const updated = userMovies.filter((_, i) => i !== index);
-    setUserMovies(updated);
-  }
-};
+    if (userMovies.length > 1) {
+      const updated = userMovies.filter((_, i) => i !== index);
+      setUserMovies(updated);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -84,13 +85,9 @@ const MovieInputForm = () => {
     }
 
     try {
-      const res = await axios.post('http://localhost:5050/api/movies/recommend', {
+      // Use the configured api instance instead of axios directly
+      const res = await api.post('/api/movies/recommend', {
         movies: filteredMovies
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: false
       });
 
       if (res.data && res.data.recommendations) {
@@ -126,48 +123,48 @@ const MovieInputForm = () => {
         )}
 
         {userMovies.map((movie, index) => (
-  <div key={index} className="relative flex gap-2 items-start">
-    <div className="w-full relative">
-      <input
-        type="text"
-        value={movie}
-        onChange={(e) => handleChange(index, e.target.value)}
-        placeholder={`Movie ${index + 1}`}
-        className="w-full px-4 py-2 border rounded text-black dark:text-white dark:bg-gray-800"
-        required
-      />
+          <div key={index} className="relative flex gap-2 items-start">
+            <div className="w-full relative">
+              <input
+                type="text"
+                value={movie}
+                onChange={(e) => handleChange(index, e.target.value)}
+                placeholder={`Movie ${index + 1}`}
+                className="w-full px-4 py-2 border rounded text-black dark:text-white dark:bg-gray-800"
+                required
+              />
 
-      {index === userMovies.length - 1 && suggestions.length > 0 && (
-        <ul className="absolute z-20 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow w-full mt-1 max-h-40 overflow-auto text-black dark:text-white">
-          {suggestions.map((title, idx) => (
-            <li
-              key={idx}
-              className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-700 cursor-pointer"
-              onClick={() => {
-                handleChange(index, title);
-                setSuggestions([]);
-              }}
-            >
-              {title}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+              {index === userMovies.length - 1 && suggestions.length > 0 && (
+                <ul className="absolute z-20 bg-white dark:bg-gray-800 border dark:border-gray-600 rounded shadow w-full mt-1 max-h-40 overflow-auto text-black dark:text-white">
+                  {suggestions.map((title, idx) => (
+                    <li
+                      key={idx}
+                      className="px-4 py-2 hover:bg-blue-100 dark:hover:bg-blue-700 cursor-pointer"
+                      onClick={() => {
+                        handleChange(index, title);
+                        setSuggestions([]);
+                      }}
+                    >
+                      {title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
 
-    {/* Show remove button if there's more than one field */}
-    {userMovies.length > 1 && (
-      <button
-        type="button"
-        onClick={() => handleRemoveMovie(index)}
-        className="mt-1 text-red-600 hover:text-red-800 font-bold px-2"
-        title="Remove this movie input"
-      >
-        ✖
-      </button>
-    )}
-  </div>
-))}
+            {/* Show remove button if there's more than one field */}
+            {userMovies.length > 1 && (
+              <button
+                type="button"
+                onClick={() => handleRemoveMovie(index)}
+                className="mt-1 text-red-600 hover:text-red-800 font-bold px-2"
+                title="Remove this movie input"
+              >
+                ✖
+              </button>
+            )}
+          </div>
+        ))}
 
         <div className="flex gap-2">
           <button
