@@ -30,6 +30,10 @@ app.get('/api/test', (req, res) => {
   res.json({ message: 'Server is working with CORS enabled!' });
 });
 
+app.get('/', (req, res) => {
+  res.send('Backend is running 🚀');
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
