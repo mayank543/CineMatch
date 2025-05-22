@@ -8,7 +8,7 @@ function App() {
         <ThemeToggle />
       </div>
       <h1 className="text-3xl text-violet-600 dark:text-violet-300 font-bold mb-4">
-        Watch Together Finder 🎬
+        CineMatch 🎬
       </h1>
       <MovieInputForm />
     </div>
