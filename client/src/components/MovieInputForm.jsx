@@ -124,119 +124,136 @@ const MovieInputForm = () => {
     <div className="w-full">
       {/* Input Form Section - Wider to accommodate side-by-side layout */}
       <div className="w-full px-4 max-w-4xl mx-auto mb-8">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <h2 className="text-xl font-semibold">Enter Movies You Like</h2>
+        <div className="relative p-8 overflow-hidden" style={{
+          background: `
+            radial-gradient(ellipse 150% 120% at center, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.025) 25%, rgba(255,255,255,0.015) 15%, rgba(255,255,255,0.005) 65%, transparent 85%)
+          `,
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
+        }}>
+          
+          {/* CineMatch Heading inside the region */}
+          <div className="text-center mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold text-indigo-500 mb-2 tracking-wider">
+              CineMatch🎬
+            </h1>
+            <p className="text-white/80 text-lg mb-6">Discover your next favorite movie</p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
+            <h2 className="text-xl font-semibold text-white mb-4">Enter Movies You Like</h2>
 
-          {error && (
-            <div className="p-2 text-red-700 bg-red-100 rounded">{error}</div>
-          )}
+            {error && (
+              <div className="p-3 text-red-100 bg-red-500/20 backdrop-blur-sm border border-red-400/30 rounded-lg">{error}</div>
+            )}
 
-          {/* Grid layout for input fields */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {userMovies.map((movie, index) => (
-              <div key={index} className="relative">
-                <div className="flex gap-2 items-start">
-                  <div className="w-full relative">
-                    <input
-                      type="text"
-                      value={movie}
-                      onChange={(e) => handleChange(index, e.target.value)}
-                      onFocus={() => setActiveInputIndex(index)}
-                      onBlur={() => setTimeout(() => setActiveInputIndex(null), 150)} // Small delay to allow click on suggestions
-                      placeholder={`Movie ${index + 1}`}
-                      className="w-full px-5 py-3 border border-white/30 rounded-lg bg-black/20 backdrop-blur-sm text-white placeholder-white/60 focus:border-white/50 focus:bg-black/30 transition-all duration-300"
-                      required
-                    />
+            {/* Grid layout for input fields */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {userMovies.map((movie, index) => (
+                <div key={index} className="relative">
+                  <div className="flex gap-2 items-start">
+                    <div className="w-full relative">
+                      <input
+                        type="text"
+                        value={movie}
+                        onChange={(e) => handleChange(index, e.target.value)}
+                        onFocus={() => setActiveInputIndex(index)}
+                        onBlur={() => setTimeout(() => setActiveInputIndex(null), 150)} // Small delay to allow click on suggestions
+                        placeholder={`Movie ${index + 1}`}
+                        className="w-full px-5 py-3 border border-white/20 rounded-lg bg-white/10 backdrop-blur-sm text-white placeholder-white/70 focus:border-white/40 focus:bg-white/15 transition-all duration-300"
+                        required
+                      />
 
-                    {activeInputIndex === index && suggestions.length > 0 && (
-                      <ul className="absolute z-20 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border dark:border-gray-600 rounded-lg shadow-lg w-full mt-1 max-h-40 overflow-auto text-black dark:text-white">
-                        {suggestions.map((title, idx) => (
-                          <li
-                            key={idx}
-                            className="px-4 py-2 hover:bg-blue-100/80 dark:hover:bg-blue-700/80 cursor-pointer transition-colors duration-200"
-                            onClick={() => {
-                              handleChange(index, title);
-                              setSuggestions([]);
-                              setActiveInputIndex(null);
-                            }}
-                          >
-                            {title}
-                          </li>
-                        ))}
-                      </ul>
+                      {activeInputIndex === index && suggestions.length > 0 && (
+                        <ul className="absolute z-20 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border border-white/20 dark:border-gray-600/50 rounded-lg shadow-xl w-full mt-1 max-h-40 overflow-auto text-black dark:text-white">
+                          {suggestions.map((title, idx) => (
+                            <li
+                              key={idx}
+                              className="px-4 py-2 hover:bg-blue-100/80 dark:hover:bg-blue-700/80 cursor-pointer transition-colors duration-200"
+                              onClick={() => {
+                                handleChange(index, title);
+                                setSuggestions([]);
+                                setActiveInputIndex(null);
+                              }}
+                            >
+                              {title}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+
+                    {/* Show remove button if there's more than two fields */}
+                    {userMovies.length > 2 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMovie(index)}
+                        className="mt-1 text-red-300 hover:text-red-100 font-bold px-2 py-1 rounded-full hover:bg-red-500/20 backdrop-blur-sm transition-all duration-200"
+                        title="Remove this movie input"
+                      >
+                        ✖
+                      </button>
                     )}
                   </div>
-
-                  {/* Show remove button if there's more than two fields */}
-                  {userMovies.length > 2 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMovie(index)}
-                      className="mt-1 text-red-400 hover:text-red-600 font-bold px-2 py-1 rounded-full hover:bg-red-100/20 transition-all duration-200"
-                      title="Remove this movie input"
-                    >
-                      ✖
-                    </button>
-                  )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
 
-          <div className="flex gap-2 justify-center pt-4">
-            <button
-              type="button"
-              onClick={handleAddMovie}
-              className="px-6 py-2 bg-blue-500/80 hover:bg-blue-600/80 text-white rounded-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
-            >
-              + Add Another
-            </button>
-            <button
-              type="submit"
-              className="px-6 py-2 bg-green-600/80 hover:bg-green-700/80 text-white rounded-lg backdrop-blur-sm transition-all duration-300 hover:scale-105"
-              disabled={loading}
-            >
-              {loading ? 'Loading...' : 'Find Matches'}
-            </button>
-          </div>
-        </form>
+            <div className="flex gap-3 justify-center pt-6">
+              <button
+                type="button"
+                onClick={handleAddMovie}
+                className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl border border-blue-500 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+              >
+                + Add Another
+              </button>
+              <button
+                type="submit"
+                className="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl border border-green-500 transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
+                disabled={loading}
+              >
+                {loading ? 'Loading...' : 'Find Matches'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       {/* Results Section - Full width with padding */}
       {results.length > 0 && (
         <div className="w-full px-4 max-w-7xl mx-auto">
-          <h3 className="text-lg font-bold mb-6">Recommendations:</h3>
+          <h3 className="text-lg font-bold mb-6 text-white">Recommendations:</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
             {results.map((movie, index) => (
               <motion.div
-  key={movie.id}
-  onClick={() => openModal(movie)}
-  className="group border rounded-lg overflow-hidden bg-white/10 shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-in-out transform cursor-pointer backdrop-blur-sm"
-  initial={{ opacity: 0, y: 30 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
->
-  {movie.poster_path ? (
-    <img
-      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-      alt={movie.title}
-      className="w-full h-auto object-cover transition duration-300 hover:brightness-110"
-    />
-  ) : (
-    <div className="w-full h-[400px] bg-gray-200 flex items-center justify-center text-gray-600">
-      No image
-    </div>
-  )}
+                key={movie.id}
+                onClick={() => openModal(movie)}
+                className="group border rounded-lg overflow-hidden bg-white shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-in-out transform cursor-pointer"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
+              >
+                {movie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title}
+                    className="w-full h-auto object-cover transition duration-300 hover:brightness-110"
+                  />
+                ) : (
+                  <div className="w-full h-[400px] bg-gray-200 flex items-center justify-center text-gray-600">
+                    No image
+                  </div>
+                )}
 
-  <div className="p-3">
-    <h4 className="font-semibold text-gray-900 text-sm transition-colors duration-300 group-hover:text-blue-600 line-clamp-2">
-      {movie.title}
-    </h4>
-    <p className="text-sm text-gray-800 mt-1">
-      {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
-    </p>
-  </div>
-</motion.div>
+                <div className="p-3">
+                  <h4 className="font-semibold text-black text-sm transition-colors duration-300 group-hover:text-blue-600 line-clamp-2">
+                    {movie.title}
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
+                  </p>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
