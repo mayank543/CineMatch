@@ -1,5 +1,5 @@
 import MovieInputForm from './components/MovieInputForm';
-import backgroundImage from './assets/n6.png'; // ✅ Import the image
+import backgroundImage from './assets/n6.png'; 
 
 function App() {
   return (
