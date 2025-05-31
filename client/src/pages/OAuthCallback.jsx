@@ -20,7 +20,7 @@ const OAuthCallback = () => {
       try {
         const token = await getToken();
 
-        const response = await fetch('http://localhost:5050/oauth2callback', {
+        const  response = await fetch('http://localhost:5050/oauth2callback', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const router = express.Router();
+const  router = express.Router();
 
 router.get('/oauth2callback', async (req, res) => {
   const code = req.query.code;
