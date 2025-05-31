@@ -1,12 +1,17 @@
 
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const moviesRoute = require('./routes/movies');
+import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
+import oauthRoutes from './routes/oauth.js'; // adjust path as needed
+
+import cors from 'cors';
+import moviesRoute from './routes/movies.js';
 
 
 
 const app = express();
+
+app.use('/api', oauthRoutes);
 
 // IMPORTANT: CORS middleware must be before any routes
 app.use(cors({

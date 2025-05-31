@@ -1,7 +1,11 @@
-require('dotenv').config(); 
-const express = require('express');
-const axios = require('axios');
+import dotenv from 'dotenv';
+dotenv.config();
+
+import express from 'express';
+import axios from 'axios';
+
 const router = express.Router();
+
 
 // Load .env variables
 
@@ -110,4 +114,4 @@ router.post('/recommend', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
