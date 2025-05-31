@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
@@ -6,13 +7,22 @@ import oauthRoutes from './routes/oauth.js'; // adjust path as needed
 
 import cors from 'cors';
 import moviesRoute from './routes/movies.js';
+=======
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const moviesRoute = require('./routes/movies');
+>>>>>>> 563792455fbb1a8f246001324f0f7437af621e84
 
 
 
 const app = express();
 
+<<<<<<< HEAD
 app.use('/api', oauthRoutes);
 
+=======
+>>>>>>> 563792455fbb1a8f246001324f0f7437af621e84
 // IMPORTANT: CORS middleware must be before any routes
 app.use(cors({
   origin: ['http://localhost:5173','https://cine-match-fjmq.vercel.app'], // Your frontend URL exactly as shown
