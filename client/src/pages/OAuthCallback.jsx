@@ -40,7 +40,7 @@ const OAuthCallback = () => {
   }, [getToken, navigate, user]);
 
   return (
-    <div className="text-white p-4">
+    <div className="text-black p-4">
       Linking your Google Calendar...
     </div>
   );
