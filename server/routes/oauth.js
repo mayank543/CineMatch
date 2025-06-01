@@ -5,9 +5,27 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const  router = express.Router();
+const router = express.Router();
 
-router.get('/oauth2callback', async (req, res) => {
+
+// ✅ Step 1: Start OAuth flow — redirect to Google
+router.get('/auth/google', (req, res) => {
+  const redirectUri = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+    qs.stringify({
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      response_type: 'code',
+      scope: 'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email',
+      access_type: 'offline',
+      prompt: 'consent',
+    });
+
+  res.redirect(redirectUri);
+});
+
+
+// ✅ Step 2: Handle OAuth callback
+router.get('/api/oauth2callback', async (req, res) => {
   const code = req.query.code;
 
   if (!code) {
@@ -15,7 +33,6 @@ router.get('/oauth2callback', async (req, res) => {
   }
 
   try {
-    // Exchange the code for tokens
     const response = await axios.post(
       'https://oauth2.googleapis.com/token',
       qs.stringify({
@@ -32,11 +49,9 @@ router.get('/oauth2callback', async (req, res) => {
 
     const { access_token, refresh_token, expires_in } = response.data;
 
-    // OPTIONAL: Use Clerk session token (e.g., via JWT or header) to associate tokens with a user
-    // TODO: Save these tokens to your database tied to the current Clerk user
+    // TODO: Save access_token and refresh_token if needed
 
-    // Redirect to frontend (you can add a state or success message)
-    return res.redirect('http://localhost:5173/calendar-connected'); // or wherever you want
+    return res.redirect('http://localhost:5173/calendar-connected');
   } catch (error) {
     console.error('OAuth error:', error.response?.data || error.message);
     return res.status(500).send('OAuth2 callback failed');

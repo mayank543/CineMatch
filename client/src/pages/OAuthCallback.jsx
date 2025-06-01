@@ -20,14 +20,9 @@ const OAuthCallback = () => {
       try {
         const token = await getToken();
 
-        const  response = await fetch('http://localhost:5050/oauth2callback', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ code }),
-        });
+        await fetch(`http://localhost:5050/api/oauth2callback?code=${code}`, {
+  method: 'GET',
+});
 
         if (!response.ok) throw new Error('OAuth callback failed');
 
