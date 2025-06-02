@@ -16,7 +16,10 @@ const MovieInputForm = () => {
   const [showModal, setShowModal] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [activeInputIndex, setActiveInputIndex] = useState(null);
-  const [debouncedInputs] = useDebounce(userMovies, 300); 
+  const [debouncedInputs] = useDebounce(userMovies, 300);
+  const [movieCast, setMovieCast] = useState([]);
+  const [movieTrailer, setMovieTrailer] = useState(null);
+  const [showTrailerModal, setShowTrailerModal] = useState(false); 
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -111,7 +114,7 @@ const MovieInputForm = () => {
   };
 
   // Function to handle Google Calendar scheduling for individual movies
-  const handleOpenCalendar = (movie) => {
+  const handleScheduleMovie = (movie) => {
     const movieTitle = `Watch ${movie.title}`;
     const description = `Let's watch "${movie.title}" together on CineMatch!\n\nOverview: ${movie.overview || 'No description available.'}\n\nRating: ${movie.vote_average}/10\n\nRelease Year: ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}`;
     const location = "Home Theater / Cinema";
@@ -140,14 +143,98 @@ const MovieInputForm = () => {
     window.open(calendarUrl, "_blank");
   };
 
-  const openModal = (movie) => {
+  // Function to find streaming platforms for the movie
+  const handleFindStreaming = (movie) => {
+    const movieTitle = encodeURIComponent(movie.title);
+    const searchUrls = [
+      `https://www.netflix.com/search?q=${movieTitle}`,
+      `https://www.primevideo.com/search/ref=atv_nb_sr?phrase=${movieTitle}`,
+      `https://www.hulu.com/search?q=${movieTitle}`,
+      `https://www.justwatch.com/us/search?q=${movieTitle}`
+    ];
+    
+    // Open JustWatch as it aggregates multiple streaming services
+    window.open(`https://www.justwatch.com/us/search?q=${movieTitle}`, "_blank");
+  };
+
+  // Function to fetch movie cast
+  const fetchMovieCast = async (movieId) => {
+    try {
+      if (!TMDB_API_KEY) {
+        console.error('❌ TMDB API key is missing');
+        return [];
+      }
+
+      const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
+        params: {
+          api_key: TMDB_API_KEY
+        }
+      });
+
+      // Return top 8 cast members
+      return response.data.cast.slice(0, 8);
+    } catch (error) {
+      console.error('Error fetching cast:', error);
+      return [];
+    }
+  };
+
+  // Function to fetch movie trailer
+  const fetchMovieTrailer = async (movieId) => {
+    try {
+      if (!TMDB_API_KEY) {
+        console.error('❌ TMDB API key is missing');
+        return null;
+      }
+
+      const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/videos`, {
+        params: {
+          api_key: TMDB_API_KEY
+        }
+      });
+
+      // Find the first trailer or teaser
+      const trailer = response.data.results.find(
+        video => video.type === 'Trailer' && video.site === 'YouTube'
+      ) || response.data.results.find(
+        video => video.type === 'Teaser' && video.site === 'YouTube'
+      );
+
+      return trailer || null;
+    } catch (error) {
+      console.error('Error fetching trailer:', error);
+      return null;
+    }
+  };
+
+  const openModal = async (movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
+    setMovieCast([]); // Reset cast data
+    setMovieTrailer(null); // Reset trailer data
+    
+    // Fetch cast and trailer data
+    const [cast, trailer] = await Promise.all([
+      fetchMovieCast(movie.id),
+      fetchMovieTrailer(movie.id)
+    ]);
+    setMovieCast(cast);
+    setMovieTrailer(trailer);
+  };
+
+  const openTrailerModal = () => {
+    setShowTrailerModal(true);
+  };
+
+  const closeTrailerModal = () => {
+    setShowTrailerModal(false);
   };
 
   const closeModal = () => {
     setSelectedMovie(null);
     setShowModal(false);
+    setMovieCast([]); // Clear cast data when closing modal
+    setMovieTrailer(null); // Clear trailer data when closing modal
   };
 
   return (
@@ -331,22 +418,32 @@ const MovieInputForm = () => {
                   </div>
                 </div>
 
-                {/* Enhanced Calendar Button */}
-                <div className="px-4 pb-4">
+                {/* Two Buttons Side by Side */}
+                <div className="px-4 pb-4 flex gap-2">
                   <motion.button
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleOpenCalendar(movie);
+                      handleScheduleMovie(movie);
                     }}
-                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-xl transform hover:scale-105"
-                    whileHover={{ 
-                      y: -2,
-                      boxShadow: "0 10px 25px rgba(99, 102, 241, 0.3)"
-                    }}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                    whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <span className="text-sm">📅</span>
-                    <span>Add to Calendar</span>
+                    <span>Schedule</span>
+                  </motion.button>
+                  
+                  <motion.button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFindStreaming(movie);
+                    }}
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <span className="text-sm">🎥</span>
+                    <span>Stream</span>
                   </motion.button>
                 </div>
 
@@ -362,10 +459,10 @@ const MovieInputForm = () => {
         </div>
       )}
 
-      {/* Modal */}
+     {/* Main Movie Modal */}
       {showModal && selectedMovie && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80 p-4"
           onClick={closeModal}
         >
           <motion.div
@@ -456,16 +553,113 @@ const MovieInputForm = () => {
                   </p>
                 </div>
 
-                {/* Calendar Button in Modal */}
-                <div className="flex justify-center">
+                {/* Cast */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
+                    Cast
+                  </h3>
+                  {movieCast.length > 0 ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {movieCast.map((actor) => (
+                        <div key={actor.id} className="text-center">
+                          <div className="w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
+                            {actor.profile_path ? (
+                              <img
+                                src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                                alt={actor.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">
+                                👤
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs font-medium text-gray-800 dark:text-gray-200 mb-1">
+                            {actor.name}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {actor.character}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <div className="inline-flex items-center justify-center w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Loading cast...</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-4 justify-center">
                   <button
-                    onClick={() => handleOpenCalendar(selectedMovie)}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                    onClick={() => handleScheduleMovie(selectedMovie)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
                   >
                     📅 Schedule Movie Night
                   </button>
+                  <button
+                    onClick={() => handleFindStreaming(selectedMovie)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                  >
+                    🎥 Find Streaming
+                  </button>
+                  {movieTrailer && (
+                    <button
+                      onClick={openTrailerModal}
+                      className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                    >
+                      ▶️ Watch Trailer
+                    </button>
+                  )}
                 </div>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Trailer Modal - Higher z-index to appear above main modal */}
+      {showTrailerModal && movieTrailer && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-90 p-4"
+          onClick={closeTrailerModal}
+        >
+          <motion.div
+            className="relative bg-black rounded-lg overflow-hidden shadow-2xl max-w-5xl w-full max-h-[90vh]"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, ease: 'easeOut' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeTrailerModal}
+              className="absolute top-4 right-4 z-20 text-white hover:text-red-500 text-2xl font-bold bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center transition-colors duration-200"
+              aria-label="Close Trailer"
+            >
+              ✖
+            </button>
+            
+            <div className="relative w-full aspect-video">
+              <iframe
+                src={`https://www.youtube.com/embed/${movieTrailer.key}?autoplay=1&rel=0&modestbranding=1`}
+                title={`${selectedMovie?.title} Trailer`}
+                className="absolute top-0 left-0 w-full h-full"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              />
+            </div>
+            
+            <div className="p-4 bg-gray-900">
+              <h3 className="text-white text-lg font-semibold mb-1">
+                {selectedMovie?.title} - {movieTrailer.type}
+              </h3>
+              <p className="text-gray-400 text-sm">
+                {movieTrailer.name}
+              </p>
             </div>
           </motion.div>
         </div>
