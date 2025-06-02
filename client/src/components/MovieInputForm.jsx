@@ -257,45 +257,104 @@ const MovieInputForm = () => {
             {results.map((movie, index) => (
               <motion.div
                 key={movie.id}
-                className="group border rounded-lg overflow-hidden bg-white shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-in-out transform"
+                className="group relative border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transform transition-all duration-500 ease-out hover:scale-[1.08] hover:-translate-y-2"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
+                whileHover={{ 
+                  rotateY: 2,
+                  rotateX: 2,
+                  transition: { duration: 0.3 }
+                }}
+                style={{
+                  background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05)'
+                }}
               >
-                <div onClick={() => openModal(movie)} className="cursor-pointer">
-                  {movie.poster_path ? (
-                    <img
-                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                      alt={movie.title}
-                      className="w-full h-auto object-cover transition duration-300 hover:brightness-110"
-                    />
-                  ) : (
-                    <div className="w-full h-[400px] bg-gray-200 flex items-center justify-center text-gray-600">
-                      No image
-                    </div>
-                  )}
+                {/* Subtle glow effect on hover */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                     style={{
+                       background: 'linear-gradient(145deg, rgba(99, 102, 241, 0.05), rgba(147, 51, 234, 0.05))',
+                       boxShadow: '0 0 40px rgba(99, 102, 241, 0.15)'
+                     }}
+                />
+                
+                <div onClick={() => openModal(movie)} className="cursor-pointer relative">
+                  {/* Image container with enhanced hover effects */}
+                  <div className="relative overflow-hidden">
+                    {movie.poster_path ? (
+                      <img
+                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                        alt={movie.title}
+                        className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 group-hover:contrast-105"
+                      />
+                    ) : (
+                      <div className="w-full h-[400px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 group-hover:from-gray-50 group-hover:to-gray-100 transition-all duration-500">
+                        <div className="text-center">
+                          <div className="text-4xl mb-2 opacity-50">🎬</div>
+                          <div className="text-sm">No image</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Overlay gradient that appears on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  </div>
 
-                  <div className="p-3">
-                    <h4 className="font-semibold text-black text-sm transition-colors duration-300 group-hover:text-blue-600 line-clamp-2">
+                  <div className="p-4 relative">
+                    <h4 className="font-bold text-gray-800 text-sm mb-1 transition-all duration-300 group-hover:text-indigo-600 group-hover:scale-105 line-clamp-2 transform-gpu">
                       {movie.title}
                     </h4>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-300">
                       {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
                     </p>
+                    
+                    {/* Rating stars that animate on hover */}
+                    {movie.vote_average > 0 && (
+                      <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <motion.span
+                            key={i}
+                            className={i < Math.round(movie.vote_average / 2) ? 'text-yellow-400' : 'text-gray-300'}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ delay: i * 0.1, duration: 0.3 }}
+                          >
+                            ⭐
+                          </motion.span>
+                        ))}
+                        <span className="text-xs text-gray-600 ml-1 font-medium">
+                          {movie.vote_average.toFixed(1)}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* Calendar Button */}
-                <div className="px-3 pb-3">
-                  <button
+                {/* Enhanced Calendar Button */}
+                <div className="px-4 pb-4">
+                  <motion.button
                     onClick={(e) => {
                       e.stopPropagation();
                       handleOpenCalendar(movie);
                     }}
-                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 shadow-sm flex items-center justify-center gap-1"
+                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white text-xs px-4 py-3 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 font-medium shadow-md hover:shadow-xl transform hover:scale-105"
+                    whileHover={{ 
+                      y: -2,
+                      boxShadow: "0 10px 25px rgba(99, 102, 241, 0.3)"
+                    }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    📅 Add to Calendar
-                  </button>
+                    <span className="text-sm">📅</span>
+                    <span>Add to Calendar</span>
+                  </motion.button>
+                </div>
+
+                {/* Floating heart icon that appears on hover */}
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none transform scale-0 group-hover:scale-100 rotate-12 group-hover:rotate-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-sm shadow-lg animate-pulse">
+                    ❤️
+                  </div>
                 </div>
               </motion.div>
             ))}
