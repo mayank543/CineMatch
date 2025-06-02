@@ -70,7 +70,7 @@ router.post('/recommend', async (req, res) => {
 
     console.log("📊 genreCount:", genreCount);
 
-    // Use genres that appear in at least 1 movie
+    // Use genres that appear in at least 1 movier
     const commonGenres = Object.entries(genreCount)
       .filter(([_, count]) => count >= 1)
       .map(([genreId]) => Number(genreId));

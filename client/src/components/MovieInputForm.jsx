@@ -110,6 +110,36 @@ const MovieInputForm = () => {
     }
   };
 
+  // Function to handle Google Calendar scheduling for individual movies
+  const handleOpenCalendar = (movie) => {
+    const movieTitle = `Watch ${movie.title}`;
+    const description = `Let's watch "${movie.title}" together on CineMatch!\n\nOverview: ${movie.overview || 'No description available.'}\n\nRating: ${movie.vote_average}/10\n\nRelease Year: ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}`;
+    const location = "Home Theater / Cinema";
+    
+    // Set event start & end time (default to next Saturday evening)
+    const nextSaturday = new Date();
+    nextSaturday.setDate(nextSaturday.getDate() + (6 - nextSaturday.getDay() + 7) % 7);
+    nextSaturday.setHours(20, 0, 0, 0); // 8 PM
+    
+    const start = new Date(nextSaturday);
+    const end = new Date(nextSaturday);
+    end.setHours(22, 30, 0, 0); // 10:30 PM (2.5 hours duration)
+
+    const formatDate = (date) =>
+      date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+
+    const startTime = formatDate(start);
+    const endTime = formatDate(end);
+
+    const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      movieTitle
+    )}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(
+      location
+    )}&dates=${startTime}/${endTime}`;
+
+    window.open(calendarUrl, "_blank");
+  };
+
   const openModal = (movie) => {
     setSelectedMovie(movie);
     setShowModal(true);
@@ -227,31 +257,45 @@ const MovieInputForm = () => {
             {results.map((movie, index) => (
               <motion.div
                 key={movie.id}
-                onClick={() => openModal(movie)}
-                className="group border rounded-lg overflow-hidden bg-white shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-in-out transform cursor-pointer"
+                className="group border rounded-lg overflow-hidden bg-white shadow hover:shadow-lg hover:scale-[1.02] transition-all duration-300 ease-in-out transform"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
               >
-                {movie.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                    alt={movie.title}
-                    className="w-full h-auto object-cover transition duration-300 hover:brightness-110"
-                  />
-                ) : (
-                  <div className="w-full h-[400px] bg-gray-200 flex items-center justify-center text-gray-600">
-                    No image
-                  </div>
-                )}
+                <div onClick={() => openModal(movie)} className="cursor-pointer">
+                  {movie.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                      alt={movie.title}
+                      className="w-full h-auto object-cover transition duration-300 hover:brightness-110"
+                    />
+                  ) : (
+                    <div className="w-full h-[400px] bg-gray-200 flex items-center justify-center text-gray-600">
+                      No image
+                    </div>
+                  )}
 
-                <div className="p-3">
-                  <h4 className="font-semibold text-black text-sm transition-colors duration-300 group-hover:text-blue-600 line-clamp-2">
-                    {movie.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
-                  </p>
+                  <div className="p-3">
+                    <h4 className="font-semibold text-black text-sm transition-colors duration-300 group-hover:text-blue-600 line-clamp-2">
+                      {movie.title}
+                    </h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Calendar Button */}
+                <div className="px-3 pb-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCalendar(movie);
+                    }}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-md transition-all duration-200 hover:scale-105 shadow-sm flex items-center justify-center gap-1"
+                  >
+                    📅 Add to Calendar
+                  </button>
                 </div>
               </motion.div>
             ))}
@@ -344,13 +388,23 @@ const MovieInputForm = () => {
                 )}
 
                 {/* Overview */}
-                <div>
+                <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
                     Overview
                   </h3>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                     {selectedMovie.overview || 'No overview available.'}
                   </p>
+                </div>
+
+                {/* Calendar Button in Modal */}
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => handleOpenCalendar(selectedMovie)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                  >
+                    📅 Schedule Movie Night
+                  </button>
                 </div>
               </div>
             </div>

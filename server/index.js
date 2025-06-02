@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
-import oauthRoutes from './routes/oauth.js'; // adjust path as needed
+
 
 import cors from 'cors';
 import moviesRoute from './routes/movies.js';
@@ -11,7 +11,7 @@ import moviesRoute from './routes/movies.js';
 
 const app = express();
 
-app.use('/api', oauthRoutes);
+// app.use('/api', oauthRoutes);   // not using naymore
 
 // IMPORTANT: CORS middleware must be before any routes
 app.use(cors({
