@@ -474,144 +474,152 @@ const MovieInputForm = () => {
           >
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 z-10 text-gray-800 dark:text-gray-200 hover:text-red-600 text-2xl font-bold bg-white dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              className="absolute top-4 right-4 z-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl bg-gray-100 dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-200"
               aria-label="Close"
             >
               ✖
             </button>
 
-            <div className="flex flex-col md:flex-row">
+            <div className="flex flex-col md:flex-row min-h-[500px]">
               {/* Left side - Movie Poster */}
-              <div className="md:w-1/3 flex-shrink-0">
+              <div className="md:w-1/3 flex-shrink-0 flex flex-col">
                 {selectedMovie.poster_path ? (
                   <img
                     src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
                     alt={selectedMovie.title}
-                    className="w-full h-auto object-cover rounded-l-lg"
+                    className="w-full h-full object-cover rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-lg"
                   />
                 ) : (
-                  <div className="w-full h-96 bg-gray-200 flex items-center justify-center text-gray-600 rounded-l-lg">
-                    No image available
+                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400 rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-lg min-h-[400px]">
+                    <div className="text-center">
+                      <div className="text-6xl mb-2">🎬</div>
+                      <p>No image available</p>
+                    </div>
                   </div>
                 )}
               </div>
 
               {/* Right side - Movie Details */}
-              <div className="md:w-2/3 p-6">
-                <h2 className="text-2xl font-bold mb-2 text-black dark:text-white pr-8">
-                  {selectedMovie.title}
-                </h2>
-                
-                <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                  {selectedMovie.release_date ? new Date(selectedMovie.release_date).getFullYear() : 'Release year unknown'}
-                </p>
-
-                {/* Rating */}
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="flex items-center gap-1">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <span
-                        key={i}
-                        className={
-                          i < Math.round(selectedMovie.vote_average / 2)
-                            ? 'text-yellow-500 text-xl'
-                            : 'text-gray-300 text-xl'
-                        }
-                      >
-                        ★
-                      </span>
-                    ))}
-                  </div>
-                  <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                    {selectedMovie.vote_average.toFixed(1)}/10
-                  </span>
-                </div>
-
-                {/* Release Date */}
-                {selectedMovie.release_date && (
-                  <div className="mb-4">
-                    <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1">
-                      Release Date
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(selectedMovie.release_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                      })}
-                    </p>
-                  </div>
-                )}
-
-                {/* Overview */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                    Overview
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                    {selectedMovie.overview || 'No overview available.'}
+              <div className="md:w-2/3 p-6 flex flex-col justify-between">
+                <div className="flex-1">
+                  <h2 className="text-3xl font-bold mb-3 text-black dark:text-white pr-8 leading-tight">
+                    {selectedMovie.title}
+                  </h2>
+                  
+                  <p className="text-lg text-gray-600 dark:text-gray-400 mb-4 font-medium">
+                    {selectedMovie.release_date ? new Date(selectedMovie.release_date).getFullYear() : 'Release year unknown'}
                   </p>
-                </div>
 
-                {/* Cast */}
-                <div className="mb-6">
-                  <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3">
-                    Cast
-                  </h3>
-                  {movieCast.length > 0 ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                      {movieCast.map((actor) => (
-                        <div key={actor.id} className="text-center">
-                          <div className="w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700">
-                            {actor.profile_path ? (
-                              <img
-                                src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                                alt={actor.name}
-                                className="w-full h-full object-cover"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-500 text-2xl">
-                                👤
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs font-medium text-gray-800 dark:text-gray-200 mb-1">
-                            {actor.name}
-                          </p>
-                          <p className="text-xs text-gray-600 dark:text-gray-400">
-                            {actor.character}
-                          </p>
-                        </div>
+                  {/* Rating */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <span
+                          key={i}
+                          className={
+                            i < Math.round(selectedMovie.vote_average / 2)
+                              ? 'text-yellow-400 text-xl'
+                              : 'text-gray-300 dark:text-gray-600 text-xl'
+                          }
+                        >
+                          ★
+                        </span>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <div className="inline-flex items-center justify-center w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Loading cast...</p>
+                    <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
+                      {selectedMovie.vote_average.toFixed(1)}/10
+                    </span>
+                  </div>
+
+                  {/* Release Date */}
+                  {selectedMovie.release_date && (
+                    <div className="mb-6">
+                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 uppercase tracking-wide">
+                        Release Date
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {new Date(selectedMovie.release_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
                     </div>
                   )}
+
+                  {/* Overview */}
+                  <div className="mb-6">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 uppercase tracking-wide">
+                      Overview
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
+                      {selectedMovie.overview || 'No overview available.'}
+                    </p>
+                  </div>
+
+                  {/* Cast */}
+                  <div className="mb-8">
+                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase tracking-wide">
+                      Cast
+                    </h3>
+                    {movieCast.length > 0 ? (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        {movieCast.map((actor) => (
+                          <div key={actor.id} className="text-center">
+                            <div className="w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 ring-2 ring-gray-200 dark:ring-gray-600">
+                              {actor.profile_path ? (
+                                <img
+                                  src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                                  alt={actor.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-2xl">
+                                  👤
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1 truncate">
+                              {actor.name}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                              {actor.character}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-6">
+                        <div className="inline-flex items-center justify-center w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-2"></div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">Loading cast...</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4 justify-center">
+                <div className="flex flex-wrap gap-3 justify-start border-t dark:border-gray-700 pt-6">
                   <button
                     onClick={() => handleScheduleMovie(selectedMovie)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                    className="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
                   >
-                    📅 Schedule Movie Night
+                    <span className="text-blue-400">📅</span>
+                    Schedule Movie Night
                   </button>
                   <button
                     onClick={() => handleFindStreaming(selectedMovie)}
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                    className="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
                   >
-                    🎥 Find Streaming
+                    <span className="text-purple-400">🎥</span>
+                    Find Streaming
                   </button>
                   {movieTrailer && (
                     <button
                       onClick={openTrailerModal}
-                      className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-all duration-200 hover:scale-105 shadow-md flex items-center gap-2"
+                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
                     >
-                      ▶️ Watch Trailer
+                      <span>▶️</span>
+                      Watch Trailer
                     </button>
                   )}
                 </div>
@@ -636,7 +644,7 @@ const MovieInputForm = () => {
           >
             <button
               onClick={closeTrailerModal}
-              className="absolute top-4 right-4 z-20 text-white hover:text-red-500 text-2xl font-bold bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center transition-colors duration-200"
+              className="absolute top-4 right-4 z-20 text-white hover:text-red-500 text-xl font-bold bg-black bg-opacity-70 hover:bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-200"
               aria-label="Close Trailer"
             >
               ✖
