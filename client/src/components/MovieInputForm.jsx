@@ -611,7 +611,7 @@ const MovieInputForm = () => {
                     className="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
                   >
                     <span className="text-purple-400">🎥</span>
-                    Find Streaming
+                    Where to watch
                   </button>
                   {movieTrailer && (
                     <button
