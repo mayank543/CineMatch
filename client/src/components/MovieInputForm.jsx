@@ -349,13 +349,13 @@ const MovieInputForm = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
                 whileHover={{ 
-                  rotateY: 1,
-                  rotateX: 1,
+                  rotateY: 2,
+                  rotateX: 2,
                   transition: { duration: 0.3 }
                 }}
                 style={{
-                  background: 'linear-gradient(145deg, #ffffff, #fafbfc)',
-                  boxShadow: '0 2px 15px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)'
+                  background: 'linear-gradient(145deg, #ffffff, #f8fafc)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05)'
                 }}
               >
                 {/* Subtle glow effect on hover */}
@@ -425,11 +425,11 @@ const MovieInputForm = () => {
                       e.stopPropagation();
                       handleScheduleMovie(movie);
                     }}
-                    className="flex-1 bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="text-blue-400">📅</span>
+                    <span className="text-sm">📅</span>
                     <span>Schedule</span>
                   </motion.button>
                   
@@ -438,11 +438,11 @@ const MovieInputForm = () => {
                       e.stopPropagation();
                       handleFindStreaming(movie);
                     }}
-                    className="flex-1 bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
+                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-md hover:shadow-lg transform hover:scale-105"
                     whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="text-purple-400">🎥</span>
+                    <span className="text-sm">🎥</span>
                     <span>Stream</span>
                   </motion.button>
                 </div>
