@@ -22,7 +22,7 @@ app.use(cors({
 }));
 
 // Handle preflight OPTIONS requests explicitly
-app.options('*', cors());
+// app.options('*', cors());
 
 // Body parser middleware
 app.use(express.json());
