@@ -320,13 +320,13 @@ const MovieInputForm = () => {
               <button
                 type="button"
                 onClick={handleAddMovie}
-                className="px-8 py-3 bg-gradient-to-r from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-xl border border-red-400/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/25 shadow-md"
+                className="px-8 py-3 bg-gradient-to-r from-gray-800/90 to-black/90 hover:from-black hover:to-gray-900 text-white font-medium rounded-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white-500/25 shadow-md"
               >
                 + Add Another
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-gradient-to-r from-gray-800/90 to-black/90 hover:from-black hover:to-gray-900 text-white font-medium rounded-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white/10 shadow-md"
+                className="px-8 py-3 bg-gradient-to-r from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-xl border border-red-400/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red/10 shadow-md"
                 disabled={loading}
               >
                 {loading ? 'Loading...' : 'Find Matches'}
