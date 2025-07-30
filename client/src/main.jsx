@@ -10,7 +10,7 @@ import OAuthCallback from './pages/OAuthCallback.jsx';
 
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-if (!clerkPublishableKey) {
+if (!clerkPublishableKey)  {
   throw new Error("Missing Clerk publishable key in environment variables.");
 }
 
