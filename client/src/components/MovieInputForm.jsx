@@ -137,7 +137,7 @@ const MovieInputForm = () => {
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       movieTitle
     )}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(
-      location
+      location 
     )}&dates=${startTime}/${endTime}`;
 
     window.open(calendarUrl, "_blank");
