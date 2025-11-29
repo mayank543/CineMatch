@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { useDebounce } from 'use-debounce';
-import api from '../services/api'; 
+import api from '../services/api';
 
 // IMPORTANT: Make sure this exact environment variable name matches what's in your .env file
-const TMDB_API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+
 
 const MovieInputForm = () => {
   const [userMovies, setUserMovies] = useState(['', '']); // Start with two empty fields
@@ -16,10 +16,10 @@ const MovieInputForm = () => {
   const [showModal, setShowModal] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [activeInputIndex, setActiveInputIndex] = useState(null);
-  const [debouncedInputs] = useDebounce(userMovies, 300);
+  const [debouncedInputs] = useDebounce(userMovies, 1000);
   const [movieCast, setMovieCast] = useState([]);
   const [movieTrailer, setMovieTrailer] = useState(null);
-  const [showTrailerModal, setShowTrailerModal] = useState(false); 
+  const [showTrailerModal, setShowTrailerModal] = useState(false);
 
   useEffect(() => {
     const fetchSuggestions = async () => {
@@ -35,19 +35,11 @@ const MovieInputForm = () => {
       }
 
       try {
-        // Check if API key is available
-        if (!TMDB_API_KEY) {
-          console.error('❌ TMDB API key is missing. Check your .env file');
-          return;
-        }
-
-        // Make sure the API key is properly formatted in the request
-        const res = await axios.get(`https://api.themoviedb.org/3/search/movie`, {
+        // Use backend proxy for search
+        const res = await api.get("/api/movies/search", {
           params: {
-            api_key: TMDB_API_KEY,
             query: query,
-            include_adult: false
-          }
+          },
         });
 
         const titles = res.data.results.map((m) => m.title);
@@ -118,12 +110,12 @@ const MovieInputForm = () => {
     const movieTitle = `Watch ${movie.title}`;
     const description = `Let's watch "${movie.title}" together on CineMatch!\n\nOverview: ${movie.overview || 'No description available.'}\n\nRating: ${movie.vote_average}/10\n\nRelease Year: ${movie.release_date ? new Date(movie.release_date).getFullYear() : 'Unknown'}`;
     const location = "Home Theater / Cinema";
-    
+
     // Set event start & end time (default to next Saturday evening)
     const nextSaturday = new Date();
     nextSaturday.setDate(nextSaturday.getDate() + (6 - nextSaturday.getDay() + 7) % 7);
     nextSaturday.setHours(20, 0, 0, 0); // 8 PM
-    
+
     const start = new Date(nextSaturday);
     const end = new Date(nextSaturday);
     end.setHours(22, 30, 0, 0); // 10:30 PM (2.5 hours duration)
@@ -137,7 +129,7 @@ const MovieInputForm = () => {
     const calendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
       movieTitle
     )}&details=${encodeURIComponent(description)}&location=${encodeURIComponent(
-      location 
+      location
     )}&dates=${startTime}/${endTime}`;
 
     window.open(calendarUrl, "_blank");
@@ -152,7 +144,7 @@ const MovieInputForm = () => {
       `https://www.hulu.com/search?q=${movieTitle}`,
       `https://www.justwatch.com/us/search?q=${movieTitle}`
     ];
-    
+
     // Open JustWatch as it aggregates multiple streaming services
     window.open(`https://www.justwatch.com/us/search?q=${movieTitle}`, "_blank");
   };
@@ -160,16 +152,7 @@ const MovieInputForm = () => {
   // Function to fetch movie cast
   const fetchMovieCast = async (movieId) => {
     try {
-      if (!TMDB_API_KEY) {
-        console.error('❌ TMDB API key is missing');
-        return [];
-      }
-
-      const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/credits`, {
-        params: {
-          api_key: TMDB_API_KEY
-        }
-      });
+      const response = await api.get(`/api/movies/${movieId}/cast`);
 
       // Return top 8 cast members
       return response.data.cast.slice(0, 8);
@@ -182,16 +165,7 @@ const MovieInputForm = () => {
   // Function to fetch movie trailer
   const fetchMovieTrailer = async (movieId) => {
     try {
-      if (!TMDB_API_KEY) {
-        console.error('❌ TMDB API key is missing');
-        return null;
-      }
-
-      const response = await axios.get(`https://api.themoviedb.org/3/movie/${movieId}/videos`, {
-        params: {
-          api_key: TMDB_API_KEY
-        }
-      });
+      const response = await api.get(`/api/movies/${movieId}/videos`);
 
       // Find the first trailer or teaser
       const trailer = response.data.results.find(
@@ -212,7 +186,7 @@ const MovieInputForm = () => {
     setShowModal(true);
     setMovieCast([]); // Reset cast data
     setMovieTrailer(null); // Reset trailer data
-    
+
     // Fetch cast and trailer data
     const [cast, trailer] = await Promise.all([
       fetchMovieCast(movie.id),
@@ -248,15 +222,15 @@ const MovieInputForm = () => {
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)'
         }}>
-          
+
           {/* CineMatch Heading inside the region */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-bold text-indigo-500 mb-2 tracking-wider">
-              CineMatch🎬
+            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-wider">
+              CineMatch
             </h1>
             <p className="text-white/80 text-lg mb-6">Discover your next favorite movie</p>
           </div>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4 relative z-10">
             <h2 className="text-xl font-semibold text-white mb-4">Enter Movies You Like</h2>
 
@@ -286,7 +260,7 @@ const MovieInputForm = () => {
                           {suggestions.map((title, idx) => (
                             <li
                               key={idx}
-                              className="px-4 py-2 hover:bg-blue-100/80 dark:hover:bg-blue-700/80 cursor-pointer transition-colors duration-200"
+                              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200"
                               onClick={() => {
                                 handleChange(index, title);
                                 setSuggestions([]);
@@ -320,13 +294,13 @@ const MovieInputForm = () => {
               <button
                 type="button"
                 onClick={handleAddMovie}
-                className="px-8 py-3 bg-gradient-to-r from-gray-800/90 to-black/90 hover:from-black hover:to-gray-900 text-white font-medium rounded-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-white-500/25 shadow-md"
+                className="px-8 py-3 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-xl border border-white/20 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
               >
                 + Add Another
               </button>
               <button
                 type="submit"
-                className="px-8 py-3 bg-gradient-to-r from-red-600/90 to-red-700/90 hover:from-red-700 hover:to-red-800 text-white font-medium rounded-xl border border-red-400/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red/10 shadow-md"
+                className="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl border border-red-500/30 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:shadow-lg shadow-md"
                 disabled={loading}
               >
                 {loading ? 'Loading...' : 'Find Matches'}
@@ -344,113 +318,70 @@ const MovieInputForm = () => {
             {results.map((movie, index) => (
               <motion.div
                 key={movie.id}
-                className="group relative border border-gray-200 rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-2xl transform transition-all duration-500 ease-out hover:scale-[1.08] hover:-translate-y-2"
+                className="group relative border-0 rounded-2xl overflow-hidden bg-gray-900 shadow-lg hover:shadow-2xl transform transition-all duration-500 ease-out hover:scale-[1.05] hover:-translate-y-2"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05, duration: 0.4, ease: 'easeOut' }}
-                whileHover={{ 
-                  rotateY: 1,
-                  rotateX: 1,
-                  transition: { duration: 0.3 }
-                }}
-                style={{
-                  background: 'linear-gradient(145deg, #ffffff, #fafbfc)',
-                  boxShadow: '0 2px 15px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.03)'
-                }}
+                onClick={() => openModal(movie)}
               >
-                {/* Subtle glow effect on hover */}
-                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
-                     style={{
-                       background: 'linear-gradient(145deg, rgba(99, 102, 241, 0.05), rgba(147, 51, 234, 0.05))',
-                       boxShadow: '0 0 40px rgba(99, 102, 241, 0.15)'
-                     }}
-                />
-                
-                <div onClick={() => openModal(movie)} className="cursor-pointer relative">
-                  {/* Image container with enhanced hover effects */}
-                  <div className="relative overflow-hidden">
-                    {movie.poster_path ? (
-                      <img
-                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                        alt={movie.title}
-                        className="w-full h-auto object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110 group-hover:contrast-105"
-                      />
-                    ) : (
-                      <div className="w-full h-[400px] bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-gray-500 group-hover:from-gray-50 group-hover:to-gray-100 transition-all duration-500">
-                        <div className="text-center">
-                          <div className="text-4xl mb-2 opacity-50">🎬</div>
-                          <div className="text-sm">No image</div>
-                        </div>
+                {/* Image container - Full Height */}
+                <div className="relative w-full aspect-[2/3] overflow-hidden cursor-pointer">
+                  {movie.poster_path ? (
+                    <img
+                      src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                      alt={movie.title}
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:brightness-110"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
+                      <div className="text-center">
+                        <div className="text-4xl mb-2 opacity-50">🎬</div>
+                        <div className="text-sm">No image</div>
                       </div>
-                    )}
-                    
-                    {/* Overlay gradient that appears on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
+                    </div>
+                  )}
 
-                  <div className="p-4 relative">
-                    <h4 className="font-bold text-gray-800 text-sm mb-1 transition-all duration-300 group-hover:text-indigo-600 group-hover:scale-105 line-clamp-2 transform-gpu">
+                  {/* Gradient Overlay for Text Readability */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90 transition-opacity duration-300" />
+
+                  {/* Text Content Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 z-10 flex flex-col justify-end h-full">
+                    <h4 className="font-bold text-white text-lg mb-1 leading-tight line-clamp-2 drop-shadow-md">
                       {movie.title}
                     </h4>
-                    <p className="text-sm text-gray-500 group-hover:text-gray-600 transition-colors duration-300">
-                      {movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}
-                    </p>
-                    
-                    {/* Rating stars that animate on hover */}
-                    {movie.vote_average > 0 && (
-                      <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <motion.span
-                            key={i}
-                            className={i < Math.round(movie.vote_average / 2) ? 'text-yellow-400' : 'text-gray-300'}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: i * 0.1, duration: 0.3 }}
-                          >
-                            ⭐
-                          </motion.span>
-                        ))}
-                        <span className="text-xs text-gray-600 ml-1 font-medium">
-                          {movie.vote_average.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
 
-                {/* Two Buttons Side by Side */}
-                <div className="px-4 pb-4 flex gap-2">
-                  <motion.button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleScheduleMovie(movie);
-                    }}
-                    className="flex-1 bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-blue-400">📅</span>
-                    <span>Schedule</span>
-                  </motion.button>
-                  
-                  <motion.button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFindStreaming(movie);
-                    }}
-                    className="flex-1 bg-gray-800 hover:bg-gray-900 text-white text-xs px-3 py-2 rounded-lg transition-all duration-300 flex items-center justify-center gap-1 font-medium shadow-sm hover:shadow-md transform hover:scale-105"
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <span className="text-purple-400">🎥</span>
-                    <span>Stream</span>
-                  </motion.button>
-                </div>
+                    <div className="flex items-center justify-between text-sm text-gray-300 mb-3">
+                      <span>{movie.release_date ? new Date(movie.release_date).getFullYear() : 'N/A'}</span>
+                      {movie.vote_average > 0 && (
+                        <div className="flex items-center gap-1 text-yellow-400">
+                          <span>★</span>
+                          <span>{movie.vote_average.toFixed(1)}</span>
+                        </div>
+                      )}
+                    </div>
 
-                {/* Floating heart icon that appears on hover */}
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none transform scale-0 group-hover:scale-100 rotate-12 group-hover:rotate-0">
-                  <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-pink-500 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-sm shadow-lg animate-pulse">
-                    ❤️
+                    {/* Action Buttons - Always visible or appear on hover depending on preference, keeping them visible for usability */}
+                    <div className="flex gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleScheduleMovie(movie);
+                        }}
+                        className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-xs px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-white/10"
+                      >
+                        Schedule
+                      </button>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFindStreaming(movie);
+                        }}
+                        className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white text-xs px-3 py-2 rounded-lg transition-all duration-200 font-medium border border-white/10"
+                      >
+                        Stream
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
@@ -459,216 +390,194 @@ const MovieInputForm = () => {
         </div>
       )}
 
-     {/* Main Movie Modal */}
+      {/* Main Movie Modal */}
       {showModal && selectedMovie && (
         <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-80 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
           onClick={closeModal}
         >
           <motion.div
-            className="bg-white dark:bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto relative shadow-lg"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+          />
+
+          <motion.div
+            className="bg-black rounded-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden relative shadow-2xl flex flex-col md:flex-row border border-white/10"
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Backdrop Image Background (Blurred) */}
+            {selectedMovie.backdrop_path && (
+              <div
+                className="absolute inset-0 opacity-10 pointer-events-none"
+                style={{
+                  backgroundImage: `url(https://image.tmdb.org/t/p/original${selectedMovie.backdrop_path})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  filter: 'blur(20px)'
+                }}
+              />
+            )}
+
             <button
               onClick={closeModal}
-              className="absolute top-4 right-4 z-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 text-xl bg-gray-100 dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-200"
+              className="absolute top-4 right-4 z-20 text-white/80 hover:text-white bg-black/50 hover:bg-black/70 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-200 backdrop-blur-md border border-white/10"
               aria-label="Close"
             >
               ✖
             </button>
 
-            <div className="flex flex-col md:flex-row min-h-[500px]">
-              {/* Left side - Movie Poster */}
-              <div className="md:w-1/3 flex-shrink-0 flex flex-col">
-                {selectedMovie.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w500${selectedMovie.poster_path}`}
-                    alt={selectedMovie.title}
-                    className="w-full h-full object-cover rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-lg"
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-400 rounded-l-lg md:rounded-r-none rounded-t-lg md:rounded-t-lg min-h-[400px]">
-                    <div className="text-center">
-                      <div className="text-6xl mb-2">🎬</div>
-                      <p>No image available</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+            {/* Left side - Movie Poster */}
+            <div className="md:w-2/5 h-[300px] md:h-auto relative flex-shrink-0">
+              {selectedMovie.poster_path ? (
+                <img
+                  src={`https://image.tmdb.org/t/p/w780${selectedMovie.poster_path}`}
+                  alt={selectedMovie.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-800 flex items-center justify-center text-gray-500">
+                  <span className="text-6xl">🎬</span>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-gray-900/50" />
+            </div>
 
-              {/* Right side - Movie Details */}
-              <div className="md:w-2/3 p-6 flex flex-col justify-between">
-                <div className="flex-1">
-                  <h2 className="text-3xl font-bold mb-3 text-black dark:text-white pr-8 leading-tight">
-                    {selectedMovie.title}
-                  </h2>
-                  
-                  <p className="text-lg text-gray-600 dark:text-gray-400 mb-4 font-medium">
-                    {selectedMovie.release_date ? new Date(selectedMovie.release_date).getFullYear() : 'Release year unknown'}
-                  </p>
+            {/* Right side - Movie Details */}
+            <div className="md:w-3/5 p-8 flex flex-col relative z-10 overflow-y-auto custom-scrollbar">
+              <div className="mb-6">
+                <motion.h2
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-4xl font-extrabold mb-2 text-white leading-tight"
+                >
+                  {selectedMovie.title}
+                </motion.h2>
 
-                  {/* Rating */}
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <span
-                          key={i}
-                          className={
-                            i < Math.round(selectedMovie.vote_average / 2)
-                              ? 'text-yellow-400 text-xl'
-                              : 'text-gray-300 dark:text-gray-600 text-xl'
-                          }
-                        >
-                          ★
-                        </span>
-                      ))}
-                    </div>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 font-semibold bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
-                      {selectedMovie.vote_average.toFixed(1)}/10
-                    </span>
-                  </div>
-
-                  {/* Release Date */}
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 font-medium">
                   {selectedMovie.release_date && (
-                    <div className="mb-6">
-                      <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 uppercase tracking-wide">
-                        Release Date
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400">
-                        {new Date(selectedMovie.release_date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
+                    <span className="bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full border border-gray-200 dark:border-gray-700">
+                      {new Date(selectedMovie.release_date).getFullYear()}
+                    </span>
                   )}
-
-                  {/* Overview */}
-                  <div className="mb-6">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-3 uppercase tracking-wide">
-                      Overview
-                    </h3>
-                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm">
-                      {selectedMovie.overview || 'No overview available.'}
-                    </p>
+                  <div className="flex items-center gap-1 text-yellow-500">
+                    <span>★</span>
+                    <span className="text-white font-bold">{selectedMovie.vote_average.toFixed(1)}</span>
                   </div>
-
-                  {/* Cast */}
-                  <div className="mb-8">
-                    <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 uppercase tracking-wide">
-                      Cast
-                    </h3>
-                    {movieCast.length > 0 ? (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                        {movieCast.map((actor) => (
-                          <div key={actor.id} className="text-center">
-                            <div className="w-16 h-16 mx-auto mb-2 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 ring-2 ring-gray-200 dark:ring-gray-600">
-                              {actor.profile_path ? (
-                                <img
-                                  src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                                  alt={actor.name}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-500 dark:text-gray-400 text-2xl">
-                                  👤
-                                </div>
-                              )}
-                            </div>
-                            <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 mb-1 truncate">
-                              {actor.name}
-                            </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                              {actor.character}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <div className="inline-flex items-center justify-center w-6 h-6 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin mb-2"></div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Loading cast...</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 justify-start border-t dark:border-gray-700 pt-6">
-                  <button
-                    onClick={() => handleScheduleMovie(selectedMovie)}
-                    className="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
-                  >
-                    <span className="text-blue-400">📅</span>
-                    Schedule Movie Night
-                  </button>
-                  <button
-                    onClick={() => handleFindStreaming(selectedMovie)}
-                    className="bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
-                  >
-                    <span className="text-purple-400">🎥</span>
-                    Where to watch
-                  </button>
-                  {movieTrailer && (
-                    <button
-                      onClick={openTrailerModal}
-                      className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors duration-200 text-sm font-medium flex items-center gap-2 shadow-sm"
-                    >
-                      <span>▶️</span>
-                      Watch Trailer
-                    </button>
-                  )}
                 </div>
               </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mb-8"
+              >
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Overview</h3>
+                <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg font-light">
+                  {selectedMovie.overview || 'No overview available.'}
+                </p>
+              </motion.div>
+
+              {/* Cast Section - Horizontal Scroll */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-8"
+              >
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Top Cast</h3>
+                {movieCast.length > 0 ? (
+                  <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 custom-scrollbar">
+                    {movieCast.map((actor) => (
+                      <div key={actor.id} className="flex-shrink-0 w-24 text-center group p-2 rounded-lg hover:bg-white/10 transition-colors duration-200">
+                        <div className="w-20 h-20 mx-auto mb-2 rounded-full overflow-hidden border-2 border-transparent group-hover:border-white transition-all duration-300 shadow-md">
+                          {actor.profile_path ? (
+                            <img
+                              src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                              alt={actor.name}
+                              className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-700 flex items-center justify-center text-2xl">👤</div>
+                          )}
+                        </div>
+                        <p className="text-xs font-bold text-white truncate">{actor.name}</p>
+                        <p className="text-[10px] text-gray-400 truncate">{actor.character}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 italic">Loading cast...</p>
+                )}
+              </motion.div>
+
+              {/* Action Buttons */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-auto pt-6 border-t border-gray-200 dark:border-gray-800 flex flex-wrap gap-3"
+              >
+                <button
+                  onClick={() => handleScheduleMovie(selectedMovie)}
+                  className="flex-1 bg-white hover:bg-gray-200 text-black px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                >
+                  <span>Schedule</span>
+                </button>
+                <button
+                  onClick={() => handleFindStreaming(selectedMovie)}
+                  className="flex-1 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                >
+                  <span>Stream</span>
+                </button>
+                {movieTrailer && (
+                  <button
+                    onClick={openTrailerModal}
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                  >
+                    <span>Trailer</span>
+                  </button>
+                )}
+              </motion.div>
             </div>
           </motion.div>
         </div>
       )}
 
-      {/* Trailer Modal - Higher z-index to appear above main modal */}
+      {/* Trailer Modal */}
       {showTrailerModal && movieTrailer && (
         <div
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-90 p-4"
+          className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4"
           onClick={closeTrailerModal}
         >
           <motion.div
-            className="relative bg-black rounded-lg overflow-hidden shadow-2xl max-w-5xl w-full max-h-[90vh]"
-            initial={{ opacity: 0, scale: 0.9 }}
+            className="relative w-full max-w-6xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+            initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            exit={{ opacity: 0, scale: 0.8 }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={closeTrailerModal}
-              className="absolute top-4 right-4 z-20 text-white hover:text-red-500 text-xl font-bold bg-black bg-opacity-70 hover:bg-opacity-90 rounded-full w-10 h-10 flex items-center justify-center transition-all duration-200"
-              aria-label="Close Trailer"
+              className="absolute top-4 right-4 z-20 text-white hover:text-red-500 bg-black/50 hover:bg-black/80 rounded-full w-12 h-12 flex items-center justify-center transition-all duration-200 backdrop-blur-sm border border-white/10"
             >
               ✖
             </button>
-            
-            <div className="relative w-full aspect-video">
-              <iframe
-                src={`https://www.youtube.com/embed/${movieTrailer.key}?autoplay=1&rel=0&modestbranding=1`}
-                title={`${selectedMovie?.title} Trailer`}
-                className="absolute top-0 left-0 w-full h-full"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              />
-            </div>
-            
-            <div className="p-4 bg-gray-900">
-              <h3 className="text-white text-lg font-semibold mb-1">
-                {selectedMovie?.title} - {movieTrailer.type}
-              </h3>
-              <p className="text-gray-400 text-sm">
-                {movieTrailer.name}
-              </p>
-            </div>
+
+            <iframe
+              src={`https://www.youtube.com/embed/${movieTrailer.key}?autoplay=1&rel=0&modestbranding=1`}
+              title={`${selectedMovie?.title} Trailer`}
+              className="w-full h-full"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
           </motion.div>
         </div>
       )}
